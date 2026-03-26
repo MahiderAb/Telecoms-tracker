@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  image     String?
+  role      String?
+  createdAt DateTime @default(now())
+
+  issues   Issue[] @relation("CreatedIssues")
+  assigned Issue[] @relation("AssignedIssues")
+  projects Project[]
+}
+
+model Project {
+  id String @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+  starred Boolean @default(false)
+ stars       Int @default(0)
+
+  issues Issue[]
+}
+
+model Issue {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  priority    String
+  status      String   @default("OPEN")
+  projectId   String
+  assigneeId  String
+  userId      String?
+  createdAt   DateTime @default(now())
+
+  project  Project @relation(fields: [projectId], references: [id])
+  assignee User    @relation("AssignedIssues", fields: [assigneeId], references: [id])
+  user     User?   @relation("CreatedIssues", fields: [userId], references: [id])
+}
