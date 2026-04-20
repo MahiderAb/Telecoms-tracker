@@ -63,18 +63,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         <Menu className="h-5 w-5" />
       </Button>
 
-      {/* Logo */}
-      <div className="flex items-center h-16">
-        <div className="relative h-13 w-25 overflow-hidden rounded-full">
-          <Image
-            src="/et.png"
-            alt="Company Logo"
-            fill
-            className="object-cover"
-          />
-        </div>
-      </div>
-
       {/* Search Bar */}
       <div className="flex flex-1 items-center gap-4 px-4 lg:px-0">
         <div className="relative w-full max-w-md">

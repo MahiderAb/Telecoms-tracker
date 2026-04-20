@@ -2,13 +2,12 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 
-// Demo users for the issue tracker
 const demoUsers = [
   {
     id: "user-1",
     name: "Abebe Kebede",
     email: "abebe.kebede@ethiotelecom.et",
-    password: "password123", // In production, use hashed passwords
+    password: "password123",
     avatar: "AK",
     role: "Senior Developer",
   },

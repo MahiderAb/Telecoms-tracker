@@ -10,6 +10,7 @@ import {
   Settings,
   HelpCircle,
   ChevronLeft,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -42,6 +43,11 @@ const mainNavItems: NavItem[] = [
     href: "/new",
     icon: <PlusCircle className="h-5 w-5" />,
   },
+  {
+    label: "user",
+    href: "#",
+    icon: <User className="h-5 w-5" />,
+  },
 ];
 
 const bottomNavItems: NavItem[] = [
@@ -61,20 +67,18 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
-  const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
-    return pathname.startsWith(href);
-  };
+  const isActive = (href: string) => pathname.startsWith(href);
 
   return (
     <aside
       className={cn(
-        "flex h-screen flex-col bg-white text-black transition-all duration-300",
+        "fixed left-0 top-0 h-screen flex flex-col bg-white text-black border-r transition-all duration-300",
         collapsed ? "w-16" : "w-64",
       )}
     >
-      <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4">
-        {!collapsed && (
+      {/* HEADER */}
+      <div className="flex h-16 shrink-0 items-center justify-between border-b px-4">
+        {!collapsed ? (
           <div className="flex items-center gap-2">
             <div className="relative h-8 w-20 overflow-hidden rounded-full">
               <Image
@@ -84,11 +88,8 @@ export function Sidebar() {
                 className="object-cover"
               />
             </div>
-            <span className="text-lg font-semibold">IssueTracker</span>
           </div>
-        )}
-
-        {collapsed && (
+        ) : (
           <div className="mx-auto relative h-8 w-8 overflow-hidden rounded-full">
             <Image src="/Et.png" alt="ET Logo" fill className="object-cover" />
           </div>
@@ -96,11 +97,7 @@ export function Sidebar() {
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className={cn(
-            "rounded-md p-1 hover:bg-green-100 transition-colors",
-            collapsed && "mx-auto mt-2",
-          )}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="rounded-md p-1 hover:bg-green-100 transition"
         >
           <ChevronLeft
             className={cn(
@@ -111,7 +108,7 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Main Navigation */}
+      {/* MAIN NAV */}
       <nav className="flex-1 px-3 py-4">
         <ul className="space-y-1">
           {mainNavItems.map((item) => (
@@ -119,10 +116,8 @@ export function Sidebar() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive(item.href)
-                    ? "bg-green-200 text-black"
-                    : "text-black hover:bg-green-100",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
+                  isActive(item.href) ? "bg-green-200" : "hover:bg-green-100",
                 )}
               >
                 {item.icon}
@@ -133,17 +128,16 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      <div className="border-t border-gray-200 px-3 py-4">
+      {/* BOTTOM NAV */}
+      <div className="shrink-0 border-t px-3 py-4">
         <ul className="space-y-1">
           {bottomNavItems.map((item) => (
             <li key={item.label}>
               <Link
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive(item.href)
-                    ? "bg-green-200 text-black"
-                    : "text-black hover:bg-green-100",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
+                  isActive(item.href) ? "bg-green-200" : "hover:bg-green-100",
                 )}
               >
                 {item.icon}

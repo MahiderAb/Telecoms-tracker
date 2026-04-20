@@ -6,19 +6,18 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     take: 10,
     include: {
-      assignee: true, // the assigned user
-      user: true, // the creator
+      assignee: true,
+      user: true,
     },
   });
 
   const formatted = issues.map((issue) => {
-    // Pick which user you want to display
-    const user = issue.assignee || issue.user; // show assignee first, fallback to creator
+    const user = issue.assignee || issue.user;
 
     return {
       id: issue.id,
       userName: user?.name || "Unknown",
-      userAvatar: user?.name?.[0] || "?", // first letter
+      userAvatar: user?.name?.[0] || "?",
       action: "created issue",
       issueTitle: issue.title,
       issueId: issue.id,

@@ -25,7 +25,17 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {/* 🔥 FLEX LAYOUT FIX */}
+          <div className="flex">
+            {/* SIDEBAR SPACE (IMPORTANT) */}
+            <div className="w-64 shrink-0" />
+
+            {/* MAIN CONTENT */}
+            <main className="flex-1 min-h-screen">{children}</main>
+          </div>
+        </Providers>
+
         <Analytics />
       </body>
     </html>

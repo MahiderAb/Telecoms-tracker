@@ -2,37 +2,54 @@ import { auth } from "@/auth";
 
 export const proxy = auth((req) => {
   const isLoggedIn = !!req.auth;
-  const isOnLoginPage = req.nextUrl.pathname === "/login";
-  const isAuthRoute = req.nextUrl.pathname.startsWith("/api/auth");
-  const isApiRoute = req.nextUrl.pathname.startsWith("/api");
-  const isStaticAsset = req.nextUrl.pathname.match(
-    /\.(ico|png|jpg|jpeg|svg|css|js|woff|woff2)$/
+
+  // 👇 Get role from session/token
+  const userRole = req.auth?.user?.role;
+
+  const pathname = req.nextUrl.pathname;
+
+  const isOnLoginPage = pathname === "/login";
+  const isAuthRoute = pathname.startsWith("/api/auth");
+  const isApiRoute = pathname.startsWith("/api");
+  const isAdminRoute = pathname.startsWith("/admin"); // 👈 NEW
+  const isStaticAsset = pathname.match(
+    /\.(ico|png|jpg|jpeg|svg|css|js|woff|woff2)$/,
   );
 
-  // Allow auth API routes and static assets
+  // ✅ Allow auth routes & static files
   if (isAuthRoute || isStaticAsset) {
     return;
   }
 
-  // Redirect to dashboard if already logged in and trying to access login
+  // ✅ If logged in and trying to go to login → redirect home
   if (isOnLoginPage && isLoggedIn) {
     return Response.redirect(new URL("/", req.nextUrl.origin));
   }
 
-  // Allow login page access
+  // ✅ Allow login page
   if (isOnLoginPage) {
     return;
   }
 
-  // Allow API routes (they have their own auth handling)
+  // ✅ Allow API routes (you can secure them separately)
   if (isApiRoute) {
     return;
   }
 
-  // Redirect to login if not logged in
+  // ❌ Not logged in → redirect to login
   if (!isLoggedIn) {
     return Response.redirect(new URL("/login", req.nextUrl.origin));
   }
+
+  // 🔐 ADMIN PROTECTION (MAIN FEATURE 🔥)
+  if (isAdminRoute) {
+    if (userRole !== "ADMIN") {
+      return Response.redirect(new URL("/unauthorized", req.nextUrl.origin));
+    }
+  }
+
+  // ✅ Otherwise allow request
+  return;
 });
 
 export const config = {

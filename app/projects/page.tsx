@@ -9,6 +9,7 @@ import { FolderKanban, Star, Plus, Users, Bug, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
 import type { Project, Issue } from "@/lib/types";
+import { useState } from "react";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -49,7 +50,6 @@ function ProjectCard({
             </div>
           </div>
 
-          {/* ⭐ STAR BUTTON */}
           <button
             onClick={() => onToggleStar(project.id, project.starred)}
             className="hover:scale-110 transition"
@@ -83,7 +83,7 @@ function ProjectCard({
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-border">
+        <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarFallback className="bg-muted text-xs">
@@ -99,11 +99,7 @@ function ProjectCard({
           </div>
 
           <Link href={`/projects/${project.id}`}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs group-hover:text-primary"
-            >
+            <Button variant="ghost" size="sm" className="h-7 text-xs">
               View
               <ArrowRight className="ml-1 h-3 w-3" />
             </Button>
@@ -121,13 +117,16 @@ export default function ProjectsPage() {
     isLoading,
   } = useSWR<Project[]>("/api/projects", fetcher);
 
-  // ⭐ FIXED STAR TOGGLE (SWR VERSION)
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const handleToggleStar = async (
     projectId: string,
     currentStarred: boolean,
   ) => {
     try {
-      // 🔥 Optimistic update (instant UI)
       mutate(
         (prev) =>
           prev?.map((p) =>
@@ -136,30 +135,44 @@ export default function ProjectsPage() {
         false,
       );
 
-      const res = await fetch("/api/projects/star", {
+      await fetch("/api/projects/star", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projectId,
           starred: !currentStarred,
         }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error("Star API failed", data);
-        mutate(); // rollback refetch
-        return;
-      }
-
-      // 🔥 sync with server response
       mutate();
     } catch (err) {
-      console.error("Star toggle error:", err);
-      mutate(); // rollback
+      console.error(err);
+      mutate();
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description }),
+      });
+
+      if (!res.ok) throw new Error("Failed");
+
+      setOpen(false);
+      setName("");
+      setDescription("");
+      mutate();
+    } catch (err) {
+      console.error(err);
+      alert("Error creating project");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -177,13 +190,56 @@ export default function ProjectsPage() {
             </p>
           </div>
 
-          <Link href="/projects/new">
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Project
-            </Button>
-          </Link>
+          <Button onClick={() => setOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            New Project
+          </Button>
         </div>
+        {open && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white w-full max-w-md p-6 rounded-lg shadow-lg text-black">
+              <h2 className="text-xl font-bold mb-4">Create Project</h2>
+
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <input
+                  className="w-full border p-2 rounded"
+                  placeholder="Project Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+
+                <textarea
+                  className="w-full border p-2 rounded"
+                  placeholder="Description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+
+                {/* DEBUG */}
+                <div className="flex gap-3 pt-4">
+                  {/* CANCEL */}
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="w-1/2 px-4 py-2 border rounded bg-gray-100 hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+
+                  {/* CREATE */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-1/2 px-4 py-2 border rounded bg-green-200 hover:bg-green-700"
+                  >
+                    {loading ? "Creating..." : "Create"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* STATS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -242,7 +298,7 @@ export default function ProjectsPage() {
           </Card>
         </div>
 
-        {/* PROJECT GRID */}
+        {/* GRID */}
         {isLoading ? (
           <p>Loading...</p>
         ) : (
